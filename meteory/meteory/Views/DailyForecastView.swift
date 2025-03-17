@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 struct DailyForecastView: View {
@@ -37,7 +36,7 @@ struct DailyForecastView: View {
 
 struct DailyForecastView_Previews: PreviewProvider {
     static var previews: some View {
-        DailyForecastView(dailyForecast: WeatherViewModel.DailyForecast(day: "2023-09-21", maxTemp: 20, minTemp: 14, main: "Sunny"), viewModel: WeatherViewModel(weather: previewData))
+        DailyForecastView(dailyForecast: WeatherViewModel.DailyForecast(day: "2025-03-16", maxTemp: 20, minTemp: 14, main: "Sunny"), viewModel: WeatherViewModel(weather: previewData))
             .environmentObject(ColorSchemeManager())
     }
 }
