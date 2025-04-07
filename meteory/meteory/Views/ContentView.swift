@@ -17,7 +17,7 @@ struct ContentView: View {
             if let location =
                 locationManager.location {
                 if weather == weather {
-                    MainView(weather: weather ?? viewModel.weather, viewModel: viewModel)
+                    MainView(viewModel: viewModel)
                         .environmentObject(colorSchemeManager)
                 }  else {
                     LoadingView()

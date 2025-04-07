@@ -3,7 +3,6 @@ import SwiftUI
 struct MainView: View {
     @State private var isListVisible: Bool = false
     @State private var isSettingsVisible: Bool = false
-    @State var weather: ResponseData
     
     @StateObject var viewModel: WeatherViewModel
     @EnvironmentObject var colorSchemeManager: ColorSchemeManager
@@ -13,29 +12,33 @@ struct MainView: View {
         NavigationStack {
             ZStack {
                 VStack {
-                    WeatherView(weather: weather, viewModel: viewModel)
+                    // Use viewModel.weather directly so that any updates reflect live data
+                    WeatherView(viewModel: viewModel)
                         .environmentObject(colorSchemeManager)
+                        // Example navigation button showing formatted time using live data
                         .navigationBarItems(leading:
-                                                Button(viewModel.formatTime(unixTime: Date(), timeZoneOffset: viewModel.weather.city.timezone)) {}
-                            .foregroundColor(.primary)
-                            .bold()
+                            Button(action: {}) {
+                                Text(viewModel.formatTime(unixTime: Date(), timeZoneOffset: viewModel.weather.city.timezone))
+                                    .foregroundColor(.primary)
+                                    .bold()
+                            }
                         )
                         .navigationBarItems(leading:
-                                                Button(action: {
-                            isListVisible.toggle()
-                        }) {
-                            Image(systemName: "line.3.horizontal")
-                                .foregroundColor(.primary)
-                        },
-                                            trailing: Button(action: {
-                            isSettingsVisible.toggle()
-                        }) {
-                            Image(systemName: "gearshape")
-                                .foregroundColor(.primary)
-                        }
+                            Button(action: {
+                                isListVisible.toggle()
+                            }) {
+                                Image(systemName: "line.3.horizontal")
+                                    .foregroundColor(.primary)
+                            },
+                            trailing: Button(action: {
+                                isSettingsVisible.toggle()
+                            }) {
+                                Image(systemName: "gearshape")
+                                    .foregroundColor(.primary)
+                            }
                         )
                         .onTapGesture {
-                            print("Spacer in LeftSideBarView tapped!")
+                            // Hide sidebars when tapping the main view
                             isSettingsVisible = false
                             isListVisible  = false
                         }
@@ -51,8 +54,6 @@ struct MainView: View {
                             .edgesIgnoringSafeArea(.all)
                             .navigationBarHidden(true)
                             .transition(.move(edge: .leading))
-                            .onTapGesture {}
-                        
                         Spacer()
                     }
                 }
@@ -68,7 +69,6 @@ struct MainView: View {
                             .edgesIgnoringSafeArea(.all)
                             .navigationBarHidden(true)
                             .transition(.move(edge: .trailing))
-                            .onTapGesture {}
                     }
                 }
             }
@@ -76,13 +76,16 @@ struct MainView: View {
             .environment(\.colorScheme, colorSchemeManager.currentScheme)
             .toolbarBackground(Color(.systemBackground), for: .navigationBar)
         }
+        .onAppear {
+            // Fetch live data when the view appears
+            viewModel.getWeatherForecast()
+        }
     }
 }
-    
+
 struct MainView_Previews: PreviewProvider {
-    
     static var previews: some View {
-        MainView(weather: previewData, viewModel: WeatherViewModel(weather: previewData))
+        MainView(viewModel: WeatherViewModel(weather: previewData))
             .environmentObject(ColorSchemeManager())
             .environment(\.colorScheme, ColorSchemeManager().currentScheme)
     }

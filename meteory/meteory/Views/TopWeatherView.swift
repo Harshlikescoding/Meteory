@@ -28,14 +28,17 @@ struct TopWeatherView: View {
         .foregroundColor(colorSchemeManager.currentScheme == .dark ? .white : .primary)
         .background(.ultraThinMaterial)
         .cornerRadius(20)
-}
+        .onAppear {
+            // Trigger a live data fetch when this view appears.
+            viewModel.getWeatherForecast()
+        }
+    }
     
     func formatedTime(time: Date, timeZoneOffset: Double) -> String {
-        let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "E, HH:mm"
         formatter.timeZone = TimeZone(secondsFromGMT: Int(timeZoneOffset))
-        return formatter.string(from: date)
+        return formatter.string(from: time)
     }
 }
 

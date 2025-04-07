@@ -30,7 +30,8 @@ class MeteoryManager {
     }
 }
 
-struct ResponseData: Decodable, Identifiable, RandomAccessCollection, Hashable {
+struct ResponseData: Codable, Identifiable, RandomAccessCollection, Hashable {
+    
     static func == (lhs: ResponseData, rhs: ResponseData) -> Bool {
         return lhs.cod == rhs.cod && lhs.city == rhs.city
     }
@@ -64,7 +65,7 @@ struct ResponseData: Decodable, Identifiable, RandomAccessCollection, Hashable {
         case city
     }
     
-    struct ListResponse: Decodable, Identifiable, RandomAccessCollection, Hashable {
+    struct ListResponse: Codable, Identifiable, RandomAccessCollection, Hashable {
         static func == (lhs: ResponseData.ListResponse, rhs: ResponseData.ListResponse) -> Bool {
             return lhs.dt == rhs.dt && lhs.localTime == rhs.localTime
         }
@@ -109,7 +110,7 @@ struct ResponseData: Decodable, Identifiable, RandomAccessCollection, Hashable {
         }
     }
     
-    struct MainResponse: Decodable, Identifiable {
+    struct MainResponse: Codable, Identifiable {
         var id = UUID()
         
         let temp: Double
@@ -135,24 +136,24 @@ struct ResponseData: Decodable, Identifiable, RandomAccessCollection, Hashable {
         }
     }
     
-    struct WeatherResponse: Decodable {
+    struct WeatherResponse: Codable {
         let id: Double
         let main: String
         let description: String
         let icon: String
     }
     
-    struct CloudsResponse: Decodable {
+    struct CloudsResponse: Codable {
         let all: Double
     }
     
-    struct WindResponse: Decodable {
+    struct WindResponse: Codable {
         let speed: Double
         let deg: Double
         let gust: Double
     }
     
-    struct RainResponse: Decodable {
+    struct RainResponse: Codable {
         let oneHour: Double
         
         enum CodingKeys: String, CodingKey {

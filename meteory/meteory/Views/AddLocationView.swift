@@ -63,7 +63,7 @@ struct AddLocationView: View {
 
 #if compiler(>=5.9)
 #Preview {
-    ddLocationView(viewModel: WeatherViewModel(weather: previewData))
+    AddLocationView(viewModel: WeatherViewModel(weather: previewData))
         .environmentObject(ColorSchemeManager())
         .environment(\.colorScheme, ColorSchemeManager().currentScheme)
 }

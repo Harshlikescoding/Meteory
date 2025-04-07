@@ -2,7 +2,6 @@ import SwiftUI
 import Combine
 
 struct WeatherView: View {
-    var weather: ResponseData
     @StateObject var viewModel: WeatherViewModel
     @EnvironmentObject var colorSchemeManager: ColorSchemeManager
     
@@ -17,7 +16,9 @@ struct WeatherView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
                             ForEach(viewModel.weather.list, id: \.self) { hourly in
-                                HourlyForecastView(weatherList: hourly, weather: viewModel.weather, viewModel: viewModel)
+                                // Pass the current hourly forecast item as weatherList parameter.
+                                HourlyForecastView(weatherList: hourly, viewModel: viewModel)
+                                    .environmentObject(colorSchemeManager)
                             }
                         }
                     }
@@ -33,7 +34,9 @@ struct WeatherView: View {
                             DailyForecastView(dailyForecast: daily, viewModel: viewModel)
                         }
                     }
-                    .background(colorSchemeManager.currentScheme == .light ? Color.white : Color(.systemBackground).opacity(0.2))
+                    .background(colorSchemeManager.currentScheme == .light
+                                ? Color.white
+                                : Color(.systemBackground).opacity(0.2))
                     .foregroundColor(colorSchemeManager.currentScheme == .dark ? .white : .primary)
                     .background(.ultraThinMaterial)
                     .cornerRadius(20)
@@ -41,6 +44,7 @@ struct WeatherView: View {
                 .padding()
                 .aspectRatio(1.0, contentMode: .fill)
                 .onAppear {
+                    // Always trigger the live data fetch.
                     viewModel.getWeatherForecast()
                 }
             }
@@ -52,10 +56,9 @@ struct WeatherView: View {
 
 struct WeatherView_Previews: PreviewProvider {
     static var previews: some View {
-        WeatherView(weather: previewData, viewModel: WeatherViewModel(weather: previewData))
+        // Initialize with preview data; live fetch will run in a simulator or device.
+        WeatherView(viewModel: WeatherViewModel(weather: previewData))
             .environmentObject(ColorSchemeManager())
             .environment(\.colorScheme, ColorSchemeManager().currentScheme)
     }
 }
-
-

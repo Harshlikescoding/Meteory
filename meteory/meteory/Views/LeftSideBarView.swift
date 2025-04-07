@@ -27,7 +27,7 @@ struct LeftSideBarView: View {
                             Image(systemName: "xmark")
                                 .foregroundColor(.gray)
                         }
-                            .padding(.horizontal),
+                        .padding(.horizontal),
                         alignment: .trailing
                     )
                     
@@ -47,7 +47,9 @@ struct LeftSideBarView: View {
                 
                 if !viewModel.location.isEmpty {
                     List([viewModel.weather.city], id: \.name) { cities in
-                        NavigationLink(destination: MainView(weather: viewModel.weather, viewModel: viewModel).environmentObject(colorSchemeManager).navigationBarBackButtonHidden()) {
+                        NavigationLink(destination: MainView(viewModel: viewModel)
+                                        .environmentObject(colorSchemeManager)
+                                        .navigationBarBackButtonHidden()) {
                             Text(cities.name)
                                 .listRowBackground(Color(.systemBackground).opacity(0.8))
                                 .environment(\.colorScheme, colorSchemeManager.currentScheme)
@@ -58,27 +60,37 @@ struct LeftSideBarView: View {
                     .listStyle(.plain)
                 }
                 
-                HStack() {
+                HStack {
                     Text(Image(systemName: "star.fill")) +
                     Text(" Favorite Locations")
                     Spacer()
-                }.padding()
+                }
+                .padding()
+                
                 HStack {
-                    NavigationLink(destination: AddLocationView(viewModel: viewModel).navigationBarTitle("Add Location", displayMode: .inline).environmentObject(colorSchemeManager)) {
+                    NavigationLink(destination: AddLocationView(viewModel: viewModel)
+                                        .navigationBarTitle("Add Location", displayMode: .inline)
+                                        .environmentObject(colorSchemeManager)) {
                         Text("Add Location")
                         Spacer()
                         Image(systemName: "location")
                     }
                     .foregroundColor(.primary)
-                }.padding()
+                }
+                .padding()
+                
                 HStack {
-                    NavigationLink(destination: ManageLocationsView(viewModel: viewModel).navigationBarTitle("Manage Locations", displayMode: .inline).environmentObject(colorSchemeManager)) {
+                    NavigationLink(destination: ManageLocationsView(viewModel: viewModel)
+                                        .navigationBarTitle("Manage Locations", displayMode: .inline)
+                                        .environmentObject(colorSchemeManager)) {
                         Text("Manage Locations")
                         Spacer()
                         Image(systemName: "slider.horizontal.3")
                     }
                     .foregroundColor(.primary)
-                }.padding()
+                }
+                .padding()
+                
                 Spacer()
             }
             .padding(.top, 40)
