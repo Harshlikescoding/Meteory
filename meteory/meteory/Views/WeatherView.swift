@@ -15,13 +15,13 @@ struct WeatherView: View {
                     
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
-                            ForEach(viewModel.weather.list, id: \.self) { hourly in
-                                // Pass the current hourly forecast item as weatherList parameter.
+                            ForEach(viewModel.weather.list) { hourly in
                                 HourlyForecastView(weatherList: hourly, viewModel: viewModel)
                                     .environmentObject(colorSchemeManager)
                             }
                         }
                     }
+
                     
                     SunriseView(viewModel: viewModel)
                     

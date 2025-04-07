@@ -1,32 +1,41 @@
-
-
 import SwiftUI
 import CoreLocation
 import CoreLocationUI
-import WeatherKit
 
 struct ContentView: View {
     @EnvironmentObject var colorSchemeManager: ColorSchemeManager
     @StateObject var locationManager = LocationManager()
     @StateObject var viewModel: WeatherViewModel
-    var weatherManager = MeteoryManager()
-    @State var weather: ResponseData?
+    private var weatherManager = MeteoryManager()
+    @State private var weather: ResponseData? = nil
+    
+    // Public initializer for previews and manual instantiation
+    public init(viewModel: WeatherViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     var body: some View {
         VStack {
-            if let location =
-                locationManager.location {
-                if weather == weather {
-                    MainView(viewModel: viewModel)
-                        .environmentObject(colorSchemeManager)
-                }  else {
+            if let userLocation = locationManager.location {
+                if let fetched = weather {
+                    // Update viewModel with live data and show main view
+                    MainView(viewModel: {
+                        let vm = viewModel
+                        vm.weather = fetched
+                        return vm
+                    }())
+                    .environmentObject(colorSchemeManager)
+                } else {
                     LoadingView()
                         .task {
                             do {
-                                weather = try await weatherManager.getCurrentWeather(latitude: location.latitude, longitude: location.longitude)
-
+                                let fetched = try await weatherManager.getCurrentWeather(
+                                    latitude: userLocation.latitude,
+                                    longitude: userLocation.longitude
+                                )
+                                weather = fetched
                             } catch {
-                                print("Error getting weather: \(error)")
+                                print("Error getting weather:", error)
                             }
                         }
                 }

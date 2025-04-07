@@ -12,15 +12,18 @@ struct MainView: View {
         NavigationStack {
             ZStack {
                 VStack {
-                    // Use viewModel.weather directly so that any updates reflect live data
                     WeatherView(viewModel: viewModel)
                         .environmentObject(colorSchemeManager)
-                        // Example navigation button showing formatted time using live data
                         .navigationBarItems(leading:
                             Button(action: {}) {
-                                Text(viewModel.formatTime(unixTime: Date(), timeZoneOffset: viewModel.weather.city.timezone))
-                                    .foregroundColor(.primary)
-                                    .bold()
+                                Text(
+                                    viewModel.formatTime(
+                                        unixTime: Date().timeIntervalSince1970,
+                                        offset: viewModel.weather.city.timezone
+                                    )
+                                )
+                                .foregroundColor(.primary)
+                                .bold()
                             }
                         )
                         .navigationBarItems(leading:
@@ -38,7 +41,6 @@ struct MainView: View {
                             }
                         )
                         .onTapGesture {
-                            // Hide sidebars when tapping the main view
                             isSettingsVisible = false
                             isListVisible  = false
                         }
@@ -77,7 +79,6 @@ struct MainView: View {
             .toolbarBackground(Color(.systemBackground), for: .navigationBar)
         }
         .onAppear {
-            // Fetch live data when the view appears
             viewModel.getWeatherForecast()
         }
     }

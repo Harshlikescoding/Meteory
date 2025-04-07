@@ -10,17 +10,29 @@ struct SunriseView: View {
                 .bold()
             Image(systemName: "sun.max.fill")
                 .renderingMode(.original)
-            Text(formatTime(unixTime: viewModel.weather.city.sunrise, timeZoneOffset: viewModel.weather.city.timezone))
+            Text(
+                formatTime(
+                    unixTime: Double(viewModel.weather.city.sunrise),
+                    timeZoneOffset: Double(viewModel.weather.city.timezone)
+                )
+            )
             Spacer()
             Text("Sunset")
                 .bold()
             Image(systemName: "moon.fill")
                 .foregroundColor(Color("DarkBlue"))
-            Text(formatTime(unixTime: viewModel.weather.city.sunset, timeZoneOffset: viewModel.weather.city.timezone))
+            Text(
+                formatTime(
+                    unixTime: Double(viewModel.weather.city.sunset),
+                    timeZoneOffset: Double(viewModel.weather.city.timezone)
+                )
+            )
         }
         .font(.body)
         .padding()
-        .background(colorSchemeManager.currentScheme == .light ? Color.white : Color(.systemBackground).opacity(0.2))
+        .background(colorSchemeManager.currentScheme == .light
+                        ? Color.white
+                        : Color(.systemBackground).opacity(0.2))
         .foregroundColor(colorSchemeManager.currentScheme == .dark ? .white : .primary)
         .background(.ultraThinMaterial)
         .cornerRadius(20)

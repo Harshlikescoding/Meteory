@@ -8,11 +8,18 @@ struct TopWeatherView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 5) {
-                Text(formatedTime(time: Date.now, timeZoneOffset: viewModel.weather.city.timezone))
-                    .font(.caption2)
-                    .bold()
+                Text(
+                    formatedTime(
+                        time: Date.now,
+                        timeZoneOffset: Double(viewModel.weather.city.timezone)
+                    )
+                )
+                .font(.caption2)
+                .bold()
+                
                 Text(viewModel.temperature)
                     .font(.system(size: 40))
+                
                 Text(viewModel.weather.city.name)
                     .font(.body)
                     .bold()
@@ -24,12 +31,13 @@ struct TopWeatherView: View {
                 .shadow(radius: 5)
         }
         .padding()
-        .background(colorSchemeManager.currentScheme == .light ? Color.white : Color(.systemBackground).opacity(0.2))
+        .background(colorSchemeManager.currentScheme == .light
+                        ? Color.white
+                        : Color(.systemBackground).opacity(0.2))
         .foregroundColor(colorSchemeManager.currentScheme == .dark ? .white : .primary)
         .background(.ultraThinMaterial)
         .cornerRadius(20)
         .onAppear {
-            // Trigger a live data fetch when this view appears.
             viewModel.getWeatherForecast()
         }
     }

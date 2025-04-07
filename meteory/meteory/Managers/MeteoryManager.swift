@@ -1,216 +1,116 @@
-
 import Foundation
 import CoreLocation
-import Combine
-import SwiftUI
-private let apiKey = "0cc5fa34d6cc7af0300b1e67cd71f082"
+
+private let apiKey = "9dcb14f2ca6aff278d277a00530fa7bb"
+
 class MeteoryManager {
-    func getCurrentWeather(latitude: CLLocationDegrees, longitude: CLLocationDegrees) async throws -> ResponseData {
-        guard let url = URL(string: "https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)&units=metric") else {
-            throw NSError(domain: "MeteoryManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing URL"])
+    /// Fetches the free 5‑day/3‑hour forecast.
+    func getCurrentWeather(latitude: CLLocationDegrees,
+                           longitude: CLLocationDegrees) async throws -> ResponseData {
+        let urlString = "https://api.openweathermap.org/data/2.5/forecast?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)&units=metric"
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "MeteoryManager", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
         }
-
-        let urlRequest = URLRequest(url: url)
-
-        let (data, response) = try await URLSession.shared.data(for: urlRequest)
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-            print("Received HTTP Status Code: \(statusCode)")
-            throw NSError(domain: "MeteoryManager", code: 2, userInfo: [NSLocalizedDescriptionKey: "Error fetching weather data"])
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NSError(domain: "MeteoryManager", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "HTTP Error \(code)"])
         }
-
-        do {
-            let decodedData = try JSONDecoder().decode(ResponseData.self, from: data)
-            return decodedData
-        } catch let decodingError {
-            print("Decoding failed:", decodingError)
-            throw decodingError
+        // Debug raw JSON
+        if let raw = String(data: data, encoding: .utf8) {
+            print("Raw JSON Response:\n\(raw)")
         }
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .secondsSince1970
+        let resp = try decoder.decode(ResponseData.self, from: data)
+        print("Decoded ResponseData:", resp)
+        return resp
     }
 }
 
-struct ResponseData: Codable, Identifiable, RandomAccessCollection, Hashable {
-    
-    static func == (lhs: ResponseData, rhs: ResponseData) -> Bool {
-        return lhs.cod == rhs.cod && lhs.city == rhs.city
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(cod)
-        hasher.combine(city)
-    }
-    
-    var startIndex: Int { list.startIndex }
-    var endIndex: Int { list.endIndex }
-    func formIndex(after i: inout Int) { i += 1 }
-    func formIndex(before i: inout Int) { i -= 1 }
-    subscript(index: Int) -> ListResponse {
-        return list[index]
-    }
-    
-    let id = UUID()
-    
+/// Top‑level response.
+struct ResponseData: Codable, Identifiable {
+    var id: UUID { UUID() }
     let cod: String
-    let message: Double?
-    let cnt: Double?
+    let message: Int
+    let cnt: Int
     let list: [ListResponse]
     let city: CityResponse
+}
+
+/// Each 3‑hour forecast entry.
+struct ListResponse: Codable, Identifiable {
+    var id: Double { dt }
+    
+    let dt: Double
+    let main: MainResponse
+    let weather: [WeatherResponse]
+    let clouds: CloudsResponse
+    let wind: WindResponse
+    let visibility: Int?
+    let pop: Double
+    let sys: SysResponse
+    
+    /// From `"dt_txt"` in JSON.
+    let dtTxt: String?
+    /// From `"localTime"` in preview JSON.
+    let localTime: String?
     
     enum CodingKeys: String, CodingKey {
-        case cod
-        case message
-        case cnt
-        case list
-        case city
-    }
-    
-    struct ListResponse: Codable, Identifiable, RandomAccessCollection, Hashable {
-        static func == (lhs: ResponseData.ListResponse, rhs: ResponseData.ListResponse) -> Bool {
-            return lhs.dt == rhs.dt && lhs.localTime == rhs.localTime
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(dt)
-            hasher.combine(localTime)
-        }
-        
-        var startIndex: Int { weather.startIndex }
-        var endIndex: Int { weather.endIndex }
-        func formIndex(after i: inout Int) { i += 1 }
-        func formIndex(before i: inout Int) { i -= 1 }
-        subscript(index: Int) -> WeatherResponse {
-            return weather[index]
-        }
-        
-        let id = UUID()
-        
-        let dt: Double
-        let main: MainResponse
-        let weather: [WeatherResponse]
-        let clouds: CloudsResponse
-        let wind: WindResponse
-        let visibility: Double
-        let pop: Double
-        let rain: RainResponse?
-        let sys: SysResponse
-        let localTime: String
-        
-        enum CodingKeys: String, CodingKey {
-            case dt
-            case main
-            case weather
-            case clouds
-            case wind
-            case visibility
-            case pop
-            case rain
-            case sys
-            case localTime = "dt_txt"
-        }
-    }
-    
-    struct MainResponse: Codable, Identifiable {
-        var id = UUID()
-        
-        let temp: Double
-        let feelsLike: Double
-        let tempMin: Double
-        let tempMax: Double
-        let pressure: Double
-        let seaLevel: Double
-        let groundLevel: Double
-        let humidity: Double
-        let tempKf: Double
-        
-        enum CodingKeys: String, CodingKey {
-            case temp
-            case feelsLike = "feels_like"
-            case tempMin = "temp_min"
-            case tempMax = "temp_max"
-            case pressure
-            case seaLevel = "sea_level"
-            case groundLevel = "grnd_level"
-            case humidity
-            case tempKf = "temp_kf"
-        }
-    }
-    
-    struct WeatherResponse: Codable {
-        let id: Double
-        let main: String
-        let description: String
-        let icon: String
-    }
-    
-    struct CloudsResponse: Codable {
-        let all: Double
-    }
-    
-    struct WindResponse: Codable {
-        let speed: Double
-        let deg: Double
-        let gust: Double
-    }
-    
-    struct RainResponse: Codable {
-        let oneHour: Double
-        
-        enum CodingKeys: String, CodingKey {
-            case oneHour = "1h"
-        }
-    }
-    
-    struct SysResponse: Codable {
-        
-        let pod: String
-    }
-    
-    struct CityResponse: Codable, Identifiable, Hashable {
-        static func == (lhs: ResponseData.CityResponse, rhs: ResponseData.CityResponse) -> Bool {
-            return lhs.id == rhs.id && lhs.sunset == rhs.sunset
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(id)
-            hasher.combine(sunset)
-        }
-        
-        let id: Double
-        let name: String
-        let coord: Coordinations
-        let country: String
-        let population: Double
-        let timezone: Double
-        let sunrise: Double
-        let sunset: Double
-    }
-    
-    struct Coordinations: Codable {
-        let lat: Double?
-        let lon: Double?
+        case dt, main, weather, clouds, wind, visibility, pop, sys
+        case dtTxt    = "dt_txt"
+        case localTime
     }
 }
 
-extension ResponseData.CityResponse: RandomAccessCollection {
-    var startIndex: String.Index {
-        return name.startIndex
-    }
-
-    var endIndex: String.Index {
-        return name.endIndex
-    }
-
-    func index(after i: String.Index) -> String.Index {
-        return name.index(after: i)
-    }
-
-    func index(before i: String.Index) -> String.Index {
-        return name.index(before: i)
-    }
-
-    subscript(position: String.Index) -> Character {
-        return name[position]
-    }
+struct MainResponse: Codable {
+    let temp: Double
+    let feelsLike: Double
+    let tempMin: Double
+    let tempMax: Double
+    let pressure: Int
+    let seaLevel: Int
+    let grndLevel: Int
+    let humidity: Int
+    let tempKf: Double
 }
 
+struct WeatherResponse: Codable, Identifiable {
+    let id: Int
+    let main: String
+    let description: String
+    let icon: String
+}
+
+struct CloudsResponse: Codable {
+    let all: Int
+}
+
+struct WindResponse: Codable {
+    let speed: Double
+    let deg: Int
+    let gust: Double?
+}
+
+struct SysResponse: Codable {
+    let pod: String
+}
+
+struct CityResponse: Codable, Identifiable {
+    let id: Int
+    let name: String
+    let coord: CoordResponse
+    let country: String
+    let population: Int
+    let timezone: Int
+    let sunrise: Int
+    let sunset: Int
+}
+
+struct CoordResponse: Codable {
+    let lat: Double
+    let lon: Double
+}
